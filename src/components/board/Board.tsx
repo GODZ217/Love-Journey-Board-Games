@@ -22,7 +22,7 @@ export default function Board() {
 
   const screenW = typeof window !== "undefined" ? window.innerWidth : 1200;
   const isMobile = screenW < 640;
-  const maxBoardWidth = isMobile ? screenW - 16 : 1250;
+  const maxBoardWidth = isMobile ? screenW - 16 : 750;
   const tileSize = Math.floor(maxBoardWidth / TILES_PER_ROW);
 
   return (
