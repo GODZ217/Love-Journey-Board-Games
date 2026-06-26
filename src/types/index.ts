@@ -43,13 +43,12 @@ export type Tile = {
   x: number;
   y: number;
   hasSnake?: { end: number };
-  hasLadder?: { end: number };
 };
 
 export type SnakeOrLadder = {
   start: number;
   end: number;
-  type: "snake" | "ladder" | "slide";
+  type: "snake" | "slide";
 };
 
 export type Punishment = {
@@ -105,7 +104,6 @@ export type GameStats = {
   quizCount: number;
   totalScore: number;
   snakesHit: number;
-  laddersHit: number;
 };
 
 export type CoupleReport = {
@@ -146,4 +144,9 @@ export type GameState = {
   showVictory: boolean;
   showPunishment: boolean;
   currentPunishment: Punishment | null;
+  isMoving: boolean;
+  movementPath: number[];
+  movementIndex: number;
+  isSliding: boolean;
+  slideTarget: number | null;
 };

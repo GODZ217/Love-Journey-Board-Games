@@ -35,7 +35,6 @@ const initialStats: GameStats = {
   quizCount: 0,
   totalScore: 0,
   snakesHit: 0,
-  laddersHit: 0,
 };
 
 interface GameStore extends GameState {
@@ -43,6 +42,8 @@ interface GameStore extends GameState {
   setPlayers: (players: [Player, Player]) => void;
   setCharacter: (playerIndex: number, characterId: string) => void;
   rollDice: () => void;
+  advanceStep: () => void;
+  finishSlide: () => void;
   answerQuestion: (points: number) => void;
   dismissPunishment: () => void;
   finishGame: () => void;
@@ -110,8 +111,10 @@ const generateCoupleReport = (stats: GameStats): CoupleReport => {
 
 const TIMING = {
   DICE_ROLL: 800,
-  MOVE_STEP: 600,
-  TILE_EFFECT: 900,
+  STEP_MOVE: 220,
+  SLIDE_PAUSE: 500,
+  SLIDE_DURATION: 600,
+  POST_MOVE: 400,
 };
 
 export const useGameStore = create<GameStore>()(
@@ -150,6 +153,11 @@ export const useGameStore = create<GameStore>()(
       showVictory: false,
       showPunishment: false,
       currentPunishment: null,
+      isMoving: false,
+      movementPath: [],
+      movementIndex: 0,
+      isSliding: false,
+      slideTarget: null,
 
       setPhase: (phase) => set({ phase }),
 
@@ -164,7 +172,7 @@ export const useGameStore = create<GameStore>()(
 
       rollDice: () => {
         const state = get();
-        if (state.isRolling || state.showQuestion || state.showPunishment) return;
+        if (state.isRolling || state.showQuestion || state.showPunishment || state.isMoving || state.isSliding) return;
 
         soundEngine.dice();
         set({ isRolling: true, diceValue: null, boardAnimation: false });
@@ -173,92 +181,159 @@ export const useGameStore = create<GameStore>()(
 
         setTimeout(() => {
           const current = get();
-          set({ diceValue: value, isRolling: false });
+          const playerIndex = current.currentPlayerIndex;
+          const player = current.players[playerIndex];
+          const startPos = player.position;
+
+          const path: number[] = [];
+          for (let i = 1; i <= value; i++) {
+            const pos = startPos + i;
+            if (pos > BOARD_SIZE) break;
+            path.push(pos);
+          }
+
+          set({
+            diceValue: value,
+            isRolling: false,
+            movementPath: path,
+            movementIndex: -1,
+            isMoving: path.length > 0,
+            boardAnimation: path.length > 0,
+          });
+
+          if (path.length === 0) {
+            get().nextTurn();
+            return;
+          }
 
           setTimeout(() => {
-            const playerIndex = current.currentPlayerIndex;
-            const player = current.players[playerIndex];
-            const steps = value;
-            const newPosition = Math.min(player.position + steps, BOARD_SIZE);
-            const sl = getSnakeOrLadder(newPosition);
+            get().advanceStep();
+          }, 150);
+        }, TIMING.DICE_ROLL);
+      },
 
-            let finalPosition = newPosition;
-            let extraPoints = 0;
+      advanceStep: () => {
+        const state = get();
+        if (!state.isMoving) return;
 
-            if (sl) {
-              finalPosition = sl.end;
-              if (sl.type === "ladder") {
-                extraPoints = 3;
-                soundEngine.ladder();
-              } else if (sl.type === "slide") {
-                soundEngine.snake();
-              } else {
-                soundEngine.snake();
-              }
-            }
+        const nextIdx = state.movementIndex + 1;
 
-            const newPlayers = [...current.players] as [Player, Player];
-            newPlayers[playerIndex] = { ...player, position: finalPosition };
+        if (nextIdx >= state.movementPath.length) {
+          const finalPos = state.movementPath[state.movementPath.length - 1];
+          const playerIndex = state.currentPlayerIndex;
+          const player = state.players[playerIndex];
+          const sl = getSnakeOrLadder(finalPos);
 
-            const newStats = {
-              ...current.stats,
-              totalSteps: current.stats.totalSteps + steps,
-              laddersHit: sl?.type === "ladder" ? current.stats.laddersHit + 1 : current.stats.laddersHit,
-              snakesHit: sl?.type === "snake" || sl?.type === "slide" ? current.stats.snakesHit + 1 : current.stats.snakesHit,
-              totalScore: current.stats.totalScore + extraPoints,
-            };
+          const newPlayers = [...state.players] as [Player, Player];
+          newPlayers[playerIndex] = { ...player, position: finalPos };
 
-            set({
-              players: newPlayers,
-              stats: newStats,
-              diceValue: null,
-              boardAnimation: true,
-            });
+          const newStats = {
+            ...state.stats,
+            totalSteps: state.stats.totalSteps + state.movementPath.length,
+            snakesHit: sl?.type === "slide" || sl?.type === "snake" ? state.stats.snakesHit + 1 : state.stats.snakesHit,
+          };
 
+          set({
+            players: newPlayers,
+            stats: newStats,
+            isMoving: false,
+            movementPath: [],
+            movementIndex: 0,
+            diceValue: null,
+            boardAnimation: true,
+          });
+
+          soundEngine.landing();
+
+          if (sl?.type === "slide") {
             setTimeout(() => {
-              const tileType = getTileType(finalPosition);
-              const hasSL = !!getSnakeOrLadder(finalPosition);
-              const landedOnSlide = sl?.type === "slide";
+              get().finishSlide();
+            }, TIMING.SLIDE_PAUSE);
+          } else {
+            setTimeout(() => {
+              const current = get();
+              const tileType = getTileType(finalPos);
+              const hasSL = !!getSnakeOrLadder(finalPos);
 
-              if (landedOnSlide) {
-                const punishment = getRandomPunishment();
-                set({
-                  showPunishment: true,
-                  currentPunishment: punishment,
-                  boardAnimation: false,
-                });
-              } else if (tileType !== "normal" || hasSL) {
-                const afterMove = get();
-                const cp = afterMove.players[playerIndex];
+              set({ boardAnimation: false });
+
+              if (tileType !== "normal" || hasSL) {
+                const cp = current.players[playerIndex];
                 const category = getQuestionCategory(tileType) as QuestionCategory;
                 const question = getRandomQuestion(category, cp.gender);
-
                 soundEngine.question();
-
                 set({
                   showQuestion: true,
                   currentQuestion: question,
                   currentTile: {
-                    id: finalPosition,
-                    number: finalPosition,
-                    type: tileType,
-                    x: 0,
-                    y: 0,
+                    id: finalPos, number: finalPos, type: tileType,
+                    x: 0, y: 0,
                     hasSnake: sl?.type === "snake" ? { end: sl.end } : undefined,
-                    hasLadder: sl?.type === "ladder" ? { end: sl.end } : undefined,
                   },
-                  boardAnimation: false,
                 });
-              } else if (finalPosition >= BOARD_SIZE) {
-                set({ boardAnimation: false });
+              } else if (finalPos >= BOARD_SIZE) {
                 get().finishGame();
               } else {
-                set({ boardAnimation: false });
                 get().nextTurn();
               }
-            }, TIMING.TILE_EFFECT);
-          }, TIMING.MOVE_STEP);
-        }, TIMING.DICE_ROLL);
+            }, TIMING.POST_MOVE);
+          }
+          return;
+        }
+
+        const stepPos = state.movementPath[nextIdx];
+        const playerIndex = state.currentPlayerIndex;
+        const player = state.players[playerIndex];
+        const newPlayers = [...state.players] as [Player, Player];
+        newPlayers[playerIndex] = { ...player, position: stepPos };
+
+        soundEngine.step();
+
+        set({
+          players: newPlayers,
+          movementIndex: nextIdx,
+          boardAnimation: true,
+        });
+
+        setTimeout(() => {
+          get().advanceStep();
+        }, TIMING.STEP_MOVE);
+      },
+
+      finishSlide: () => {
+        const state = get();
+        const playerIndex = state.currentPlayerIndex;
+        const player = state.players[playerIndex];
+        const sl = getSnakeOrLadder(player.position);
+        if (!sl || sl.type !== "slide") return;
+
+        soundEngine.slide();
+
+        const target = sl.end;
+
+        // Keep position at slide start during animation
+        set({
+          isSliding: true,
+          slideTarget: target,
+          boardAnimation: true,
+        });
+
+        setTimeout(() => {
+          const current = get();
+          const p = current.players[playerIndex];
+          const updatedPlayers = [...current.players] as [Player, Player];
+          updatedPlayers[playerIndex] = { ...p, position: target };
+
+          set({
+            players: updatedPlayers,
+            isSliding: false,
+            slideTarget: null,
+            boardAnimation: false,
+          });
+
+          const punishment = getRandomPunishment();
+          set({ showPunishment: true, currentPunishment: punishment });
+        }, TIMING.SLIDE_DURATION);
       },
 
       answerQuestion: (points) => {
@@ -355,6 +430,8 @@ export const useGameStore = create<GameStore>()(
           soundEnabled: get().soundEnabled,
           boardAnimation: false, showVictory: false,
           showPunishment: false, currentPunishment: null,
+          isMoving: false, movementPath: [], movementIndex: 0,
+          isSliding: false, slideTarget: null,
         });
       },
     }),

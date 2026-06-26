@@ -65,15 +65,26 @@ class SoundEngine {
     setTimeout(() => this.playTone(700, 0.1, "sine", 0.05), 80);
   }
 
-  ladder() {
-    this.playChord([523, 659, 784], 0.3, "sine", 0.08);
-    setTimeout(() => this.playChord([659, 784, 1047], 0.4, "sine", 0.08), 150);
+  step() {
+    this.playTone(660, 0.04, "sine", 0.025);
+  }
+
+  landing() {
+    this.playTone(440, 0.08, "sine", 0.04);
+    setTimeout(() => this.playTone(550, 0.06, "sine", 0.03), 60);
   }
 
   snake() {
     this.playTone(400, 0.2, "sawtooth", 0.04);
     setTimeout(() => this.playTone(300, 0.2, "sawtooth", 0.04), 100);
     setTimeout(() => this.playTone(200, 0.3, "sawtooth", 0.04), 200);
+  }
+
+  slide() {
+    this.playTone(500, 0.1, "triangle", 0.03);
+    setTimeout(() => this.playTone(400, 0.1, "triangle", 0.03), 80);
+    setTimeout(() => this.playTone(300, 0.15, "triangle", 0.03), 160);
+    setTimeout(() => this.playTone(250, 0.2, "triangle", 0.03), 260);
   }
 
   achievement() {

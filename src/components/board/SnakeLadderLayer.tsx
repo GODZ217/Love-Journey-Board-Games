@@ -1,6 +1,6 @@
 "use client";
 
-import { ladders, snakes, slides, getTilePosition } from "@/data/board";
+import { snakes, slides, getTilePosition } from "@/data/board";
 
 function getCenter(tileNumber: number) {
   const pos = getTilePosition(tileNumber);
@@ -10,59 +10,12 @@ function getCenter(tileNumber: number) {
   };
 }
 
-function LadderSVG({ start, end }: { start: number; end: number }) {
-  const s = getCenter(start);
-  const e = getCenter(end);
-
-  const dx = e.x - s.x;
-  const dy = e.y - s.y;
-  const len = Math.sqrt(dx * dx + dy * dy);
-  if (len === 0) return null;
-
-  const nx = -dy / len;
-  const ny = dx / len;
-  const offset = 14;
-
-  const p1x = s.x + nx * offset;
-  const p1y = s.y + ny * offset;
-  const p2x = e.x + nx * offset;
-  const p2y = e.y + ny * offset;
-  const p3x = s.x - nx * offset;
-  const p3y = s.y - ny * offset;
-  const p4x = e.x - nx * offset;
-  const p4y = e.y - ny * offset;
-
-  const rungCount = 6;
-  const rungs = Array.from({ length: rungCount }, (_, i) => {
-    const t = (i + 1) / (rungCount + 1);
-    return {
-      x1: p1x + (p2x - p1x) * t,
-      y1: p1y + (p2y - p1y) * t,
-      x2: p3x + (p4x - p3x) * t,
-      y2: p3y + (p4y - p3y) * t,
-    };
-  });
-
-  return (
-    <g>
-      <line x1={p1x} y1={p1y} x2={p2x} y2={p2y} stroke="#F59E0B" strokeWidth="5" strokeLinecap="round" opacity="0.6" />
-      <line x1={p3x} y1={p3y} x2={p4x} y2={p4y} stroke="#F59E0B" strokeWidth="5" strokeLinecap="round" opacity="0.6" />
-      <line x1={p1x} y1={p1y} x2={p2x} y2={p2y} stroke="#FCD34D" strokeWidth="2.5" strokeLinecap="round" />
-      <line x1={p3x} y1={p3y} x2={p4x} y2={p4y} stroke="#FCD34D" strokeWidth="2.5" strokeLinecap="round" />
-      {rungs.map((r, i) => (
-        <line key={i} x1={r.x1} y1={r.y1} x2={r.x2} y2={r.y2} stroke="#FCD34D" strokeWidth="2.5" strokeLinecap="round" />
-      ))}
-    </g>
-  );
-}
-
 function SnakeSVG({ start, end }: { start: number; end: number }) {
   const s = getCenter(start);
   const e = getCenter(end);
 
   const dx = e.x - s.x;
   const dy = e.y - s.y;
-  const len = Math.sqrt(dx * dx + dy * dy);
 
   const cp1x = s.x + dx * 0.25 + dy * 0.15;
   const cp1y = s.y + dy * 0.25 - dx * 0.15;
@@ -73,13 +26,12 @@ function SnakeSVG({ start, end }: { start: number; end: number }) {
 
   return (
     <g>
-      <path d={d} fill="none" stroke="#22C55E" strokeWidth="12" strokeLinecap="round" opacity="0.25" />
-      <path d={d} fill="none" stroke="#22C55E" strokeWidth="6" strokeLinecap="round" />
-      <path d={d} fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeDasharray="6,6" />
-      {/* Head */}
-      <circle cx={s.x} cy={s.y} r="8" fill="#22C55E" stroke="#16A34A" strokeWidth="1.5" />
-      <circle cx={s.x - 2.5} cy={s.y - 2.5} r="1.5" fill="white" />
-      <circle cx={s.x + 2.5} cy={s.y - 2.5} r="1.5" fill="white" />
+      <path d={d} fill="none" stroke="#22C55E" strokeWidth="12" strokeLinecap="round" opacity="0.2" />
+      <path d={d} fill="none" stroke="#22C55E" strokeWidth="5" strokeLinecap="round" />
+      <path d={d} fill="none" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="5,5" />
+      <circle cx={s.x} cy={s.y} r="6" fill="#22C55E" stroke="#16A34A" strokeWidth="1" />
+      <circle cx={s.x - 2} cy={s.y - 2} r="1.2" fill="white" />
+      <circle cx={s.x + 2} cy={s.y - 2} r="1.2" fill="white" />
     </g>
   );
 }
@@ -91,18 +43,19 @@ function SlideSVG({ start, end }: { start: number; end: number }) {
   const dx = e.x - s.x;
   const dy = e.y - s.y;
 
-  const cp1x = s.x + dx * 0.3 + dy * 0.1;
-  const cp1y = s.y + dy * 0.3 - dx * 0.1;
-  const cp2x = s.x + dx * 0.7 - dy * 0.1;
-  const cp2y = s.y + dy * 0.7 + dx * 0.1;
+  const cp1x = s.x + dx * 0.3 + dy * 0.12;
+  const cp1y = s.y + dy * 0.3 - dx * 0.12;
+  const cp2x = s.x + dx * 0.7 - dy * 0.12;
+  const cp2y = s.y + dy * 0.7 + dx * 0.12;
 
   const d = `M ${s.x} ${s.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${e.x} ${e.y}`;
 
   return (
     <g>
-      <path d={d} fill="none" stroke="url(#rainbow)" strokeWidth="6" strokeLinecap="round" opacity="0.8" />
-      <path d={d} fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="3,6" opacity="0.5" />
-      <text x={s.x} y={s.y - 8} textAnchor="middle" fontSize="10" fill="white" fontWeight="bold">
+      <path d={d} fill="none" stroke="url(#rainbow)" strokeWidth="8" strokeLinecap="round" opacity="0.55" />
+      <path d={d} fill="none" stroke="url(#rainbow)" strokeWidth="3" strokeLinecap="round" opacity="0.9" />
+      <path d={d} fill="none" stroke="white" strokeWidth="1" strokeLinecap="round" strokeDasharray="3,5" opacity="0.4" />
+      <text x={s.x} y={s.y - 10} textAnchor="middle" fontSize="11" fill="white" fontWeight="bold" opacity="0.8">
         🌈
       </text>
     </g>
@@ -120,16 +73,13 @@ export default function SnakeLadderLayer() {
       <defs>
         <linearGradient id="rainbow" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#FF6B6B" />
-          <stop offset="25%" stopColor="#FFD93D" />
-          <stop offset="50%" stopColor="#6BCB77" />
-          <stop offset="75%" stopColor="#4D96FF" />
-          <stop offset="100%" stopColor="#9B59B6" />
+          <stop offset="20%" stopColor="#FFD93D" />
+          <stop offset="40%" stopColor="#6BCB77" />
+          <stop offset="60%" stopColor="#4D96FF" />
+          <stop offset="80%" stopColor="#7C5CFC" />
+          <stop offset="100%" stopColor="#FF6B9D" />
         </linearGradient>
       </defs>
-
-      {ladders.map((l) => (
-        <LadderSVG key={`lad-${l.start}`} start={l.start} end={l.end} />
-      ))}
 
       {snakes.map((s) => (
         <SnakeSVG key={`snk-${s.start}`} start={s.start} end={s.end} />

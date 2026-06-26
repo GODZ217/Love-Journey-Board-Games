@@ -4,18 +4,6 @@ export const BOARD_SIZE = 100;
 export const TILES_PER_ROW = 10;
 export const TOTAL_ROWS = 10;
 
-export const ladders: SnakeOrLadder[] = [
-  { start: 3, end: 22, type: "ladder" },
-  { start: 8, end: 30, type: "ladder" },
-  { start: 20, end: 42, type: "ladder" },
-  { start: 28, end: 50, type: "ladder" },
-  { start: 40, end: 60, type: "ladder" },
-  { start: 52, end: 72, type: "ladder" },
-  { start: 63, end: 83, type: "ladder" },
-  { start: 75, end: 95, type: "ladder" },
-  { start: 80, end: 99, type: "ladder" },
-];
-
 export const snakes: SnakeOrLadder[] = [
   { start: 34, end: 16, type: "snake" },
   { start: 55, end: 37, type: "snake" },
@@ -83,7 +71,7 @@ export const getTilePosition = (tileNumber: number): { row: number; col: number 
 export const getSnakeOrLadder = (
   position: number
 ): SnakeOrLadder | undefined => {
-  return [...ladders, ...snakes, ...slides].find((s) => s.start === position);
+  return [...snakes, ...slides].find((s) => s.start === position);
 };
 
 export const isSlide = (position: number): boolean => {

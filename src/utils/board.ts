@@ -1,5 +1,5 @@
-import { Tile, TileType, SnakeOrLadder } from "@/types";
-import { BOARD_SIZE, TILES_PER_ROW, getTileType, ladders, snakes } from "@/data/board";
+import { Tile, TileType } from "@/types";
+import { BOARD_SIZE, TILES_PER_ROW, getTileType, snakes } from "@/data/board";
 
 export const createBoard = (): Tile[] => {
   const tiles: Tile[] = [];
@@ -21,9 +21,6 @@ export const createBoard = (): Tile[] => {
       y: row,
       hasSnake: snakes.find((s) => s.start === i)
         ? { end: snakes.find((s) => s.start === i)!.end }
-        : undefined,
-      hasLadder: ladders.find((l) => l.start === i)
-        ? { end: ladders.find((l) => l.start === i)!.end }
         : undefined,
     });
   }

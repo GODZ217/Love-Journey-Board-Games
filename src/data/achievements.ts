@@ -1,4 +1,4 @@
-import { Achievement } from "@/types";
+import { Achievement, GameStats } from "@/types";
 
 export const achievements: Achievement[] = [
   {
@@ -66,10 +66,10 @@ export const achievements: Achievement[] = [
   },
   {
     id: "lucky-roll",
-    name: "Lucky Streak",
-    description: "Hit 3 ladders in one game",
-    icon: "🍀",
-    condition: (stats) => stats.laddersHit >= 3,
+    name: "Lucky Roll",
+    description: "Roll a 6 three times in one game",
+    icon: "🎲",
+    condition: (_stats: GameStats) => false,
   },
   {
     id: "snake-charmer",
