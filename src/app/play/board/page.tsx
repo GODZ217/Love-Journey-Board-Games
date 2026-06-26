@@ -84,23 +84,23 @@ export default function BoardPage() {
 
       <div className="absolute top-0 left-0 w-full h-64 bg-primary-500/10 blur-[100px]" />
 
-      <div className="relative z-20 flex flex-col items-center min-h-screen p-2 sm:p-4 pb-32">
+      <div className="relative z-20 flex flex-col items-center min-h-screen p-2 sm:p-3 pb-28">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-lg text-center mb-2"
+          className="w-full max-w-lg text-center mb-1 sm:mb-2"
         >
-          <h1 className="text-xl sm:text-2xl font-bold">
+          <h1 className="text-lg sm:text-2xl font-bold">
             <span className="text-gradient">Love Journey</span>
           </h1>
-          <p className="text-white/40 text-xs">
+          <p className="text-white/40 text-[10px] sm:text-xs">
             {players[0].name} ❤️ {players[1].name}
           </p>
         </motion.div>
 
         {/* Player info bar */}
-        <div className="w-full max-w-lg mb-3">
+        <div className="w-full max-w-lg mb-1 sm:mb-2">
           <div className="flex items-center justify-between gap-2">
             {players.map((p, i) => {
               const char = getCharacterById(p.characterId);
@@ -109,7 +109,7 @@ export default function BoardPage() {
                 <motion.div
                   key={p.id}
                   animate={isActive ? { scale: 1.05 } : { scale: 1 }}
-                  className={`flex items-center gap-2 p-2 rounded-xl transition-all flex-1 border ${
+                  className={`flex items-center gap-1 sm:gap-2 p-1.5 sm:p-2 rounded-xl transition-all flex-1 border ${
                     isActive
                       ? "bg-gradient-to-r from-primary-500/20 to-secondary-500/20 border-primary-500/40 shadow-lg shadow-primary-500/10"
                       : "bg-white/5 border-white/5"
@@ -120,23 +120,23 @@ export default function BoardPage() {
                       <AnimatedCharacter
                         character={char}
                         emotion={isActive ? "happy" : "idle"}
-                        size={40}
+                        size={28}
                       />
                     ) : (
-                      <span className="text-xl">👤</span>
+                      <span className="text-lg">👤</span>
                     )}
                   </div>
                   <div className="text-left flex-1 min-w-0">
-                    <p className={`text-xs sm:text-sm font-bold truncate ${isActive ? "text-white" : "text-white/50"}`}>
+                    <p className={`text-[10px] sm:text-sm font-bold truncate ${isActive ? "text-white" : "text-white/50"}`}>
                       {p.name}
                     </p>
-                    <p className="text-[10px] text-white/30">Tile {p.position}/100</p>
+                    <p className="text-[8px] sm:text-[10px] text-white/30">Tile {p.position}/100</p>
                   </div>
                   {isActive && (
                     <motion.div
                       animate={{ opacity: [1, 0.3, 1] }}
                       transition={{ repeat: Infinity, duration: 1.5 }}
-                      className="w-2 h-2 rounded-full bg-primary-400"
+                      className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary-400"
                     />
                   )}
                 </motion.div>
@@ -146,8 +146,8 @@ export default function BoardPage() {
         </div>
 
         {/* Score bar */}
-        <GlassCard className="w-full max-w-lg mb-3 p-3">
-          <div className="flex items-center justify-between text-xs text-white/60">
+        <GlassCard className="w-full max-w-lg mb-1 sm:mb-2 p-2 sm:p-3">
+          <div className="flex items-center justify-between text-[10px] sm:text-xs text-white/60">
             <span className="flex items-center gap-1">
               💖 Score: <span className="text-primary-300 font-bold">{stats.totalScore}</span>
             </span>
@@ -164,7 +164,7 @@ export default function BoardPage() {
         </GlassCard>
 
         {/* Board */}
-        <div className="board-container">
+        <div className="flex-1 flex items-start justify-center w-full min-h-0 py-1">
           <Board />
         </div>
 
@@ -172,7 +172,7 @@ export default function BoardPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-gradient-to-t from-dark via-dark/95 to-transparent z-30"
+          className="fixed bottom-0 left-0 right-0 p-3 pb-5 bg-gradient-to-t from-dark via-dark/95 to-transparent z-30"
         >
           <div className="max-w-lg mx-auto">
             <div className="flex flex-col items-center gap-2">

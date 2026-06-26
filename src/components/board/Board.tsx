@@ -3,10 +3,12 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import Tile from "./Tile";
+import SnakeLadderLayer from "./SnakeLadderLayer";
 import BoardCharacter from "../characters/BoardCharacter";
 import { useGameStore } from "@/store/gameStore";
 import { createBoard } from "@/utils/board";
-import { TILES_PER_ROW } from "@/data/board";
+import { getTilePosition } from "@/data/board";
+import { Player } from "@/types";
 
 export default function Board() {
   const players = useGameStore((s) => s.players);
@@ -14,78 +16,72 @@ export default function Board() {
   const boardAnimation = useGameStore((s) => s.boardAnimation);
   const tiles = useMemo(() => createBoard(), []);
 
-  const rows: typeof tiles[] = [];
-  for (let i = 0; i < tiles.length; i += TILES_PER_ROW) {
-    rows.push(tiles.slice(i, i + TILES_PER_ROW).reverse());
-  }
-  rows.reverse();
-
-  const screenW = typeof window !== "undefined" ? window.innerWidth : 1200;
-  const isMobile = screenW < 640;
-  const maxBoardWidth = isMobile ? screenW - 16 : 750;
-  const tileSize = Math.floor(maxBoardWidth / TILES_PER_ROW);
+  const playersByPosition = useMemo(() => {
+    const map = new Map<number, Player[]>();
+    players.forEach((p) => {
+      const existing = map.get(p.position) || [];
+      existing.push(p);
+      map.set(p.position, existing);
+    });
+    return map;
+  }, [players]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="relative p-2 sm:p-4 rounded-2xl bg-gradient-to-br from-dark/80 via-dark-50/80 to-dark/80 backdrop-blur-xl border border-white/10 shadow-2xl"
-      style={{ width: isMobile ? "100%" : "fit-content", margin: "0 auto" }}
-    >
-      <div
-        className="flex flex-col gap-0.5 sm:gap-1"
-        style={
-          isMobile
-            ? { transform: "scale(1)", transformOrigin: "top left" }
-            : {}
-        }
+    <div className="relative w-full max-w-[95%] sm:max-w-[min(90vw,1100px,calc(100vh-190px))] mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative rounded-2xl bg-gradient-to-br from-dark/80 via-dark-50/80 to-dark/80 backdrop-blur-xl border border-white/10 shadow-2xl p-1 sm:p-1.5"
       >
-        {rows.map((row, rowIndex) => (
-          <div
-            key={rowIndex}
-            className="flex gap-0.5 sm:gap-1"
-            style={{ justifyContent: rowIndex % 2 === 0 ? "flex-start" : "flex-end" }}
-          >
-            {row.map((tile) => {
-              const playersOnTile = players.filter((p) => p.position === tile.number);
+        <div className="relative w-full aspect-square">
+          <SnakeLadderLayer />
+
+          <div className="absolute inset-0 grid grid-cols-10 grid-rows-10 gap-[1px] sm:gap-[2px]" style={{ zIndex: 2 }}>
+            {tiles.map((tile) => {
+              const pos = getTilePosition(tile.number);
+              const tilePlayers = playersByPosition.get(tile.number) || [];
 
               return (
-                <Tile key={tile.id} tile={tile} size={tileSize}>
-                  {playersOnTile.length > 0 && (
-                    <div className="absolute inset-0 z-20 pointer-events-none">
-                      {playersOnTile.map((p, i) => {
-                        const isActive = p.id === players[currentPlayerIndex]?.id;
-                        const offsetX = playersOnTile.length > 1 && i === 1 ? 10 : 0;
-                        const offsetY = playersOnTile.length > 1 && i === 1 ? -6 : 0;
-                        return (
-                          <div
-                            key={p.id}
-                            className="absolute"
-                            style={{
-                              bottom: "-14px",
-                              left: "50%",
-                              transform: `translateX(calc(-50% + ${offsetX}px)) translateY(${offsetY}px)`,
-                            }}
-                          >
-                            <BoardCharacter
-                              characterId={p.characterId}
-                              playerName={p.name}
-                              position={p.position}
-                              isActive={isActive}
-                              playerIndex={players.indexOf(p)}
-                              isMoving={boardAnimation && isActive}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </Tile>
+                <div
+                  key={tile.id}
+                  className="relative"
+                  style={{
+                    gridRow: 10 - pos.row,
+                    gridColumn: pos.col + 1,
+                  }}
+                >
+                  <Tile tile={tile}>
+                    {tilePlayers.length > 0 && (
+                      <div className="absolute bottom-0 left-0 right-0 flex items-end justify-center gap-[1px] pb-[1px] sm:pb-[2px]">
+                        {tilePlayers.map((p, i) => {
+                          const isActive = p.id === players[currentPlayerIndex]?.id;
+                          return (
+                            <div
+                              key={p.id}
+                              className={`flex flex-col items-center ${
+                                tilePlayers.length === 2 && i === 0 ? "-ml-2 sm:-ml-3" : ""
+                              } ${tilePlayers.length === 2 && i === 1 ? "-mr-2 sm:-mr-3" : ""}`}
+                            >
+                              <BoardCharacter
+                                characterId={p.characterId}
+                                playerName={p.name}
+                                position={p.position}
+                                isActive={isActive}
+                                playerIndex={players.indexOf(p)}
+                                isMoving={boardAnimation && isActive}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </Tile>
+                </div>
               );
             })}
           </div>
-        ))}
-      </div>
-    </motion.div>
+        </div>
+      </motion.div>
+    </div>
   );
 }

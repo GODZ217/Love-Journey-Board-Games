@@ -78,18 +78,12 @@ body {
   box-shadow: 0 0 10px rgba(6, 182, 212, 0.5), 0 0 20px rgba(6, 182, 212, 0.3), 0 0 40px rgba(6, 182, 212, 0.1);
 }
 
-.board-container {
-  width: 100%;
-  max-width: 1250px;
-  margin: 0 auto;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+/* Board grid gap utility */
+.board-grid {
+  gap: 1px;
 }
-
-@media (max-width: 640px) {
-  .board-container {
-    max-width: 100%;
-    padding: 0 4px;
-    overflow-x: auto;
+@media (min-width: 640px) {
+  .board-grid {
+    gap: 2px;
   }
 }

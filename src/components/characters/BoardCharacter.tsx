@@ -11,6 +11,7 @@ interface BoardCharacterProps {
   isActive: boolean;
   playerIndex: number;
   isMoving: boolean;
+  size?: number;
 }
 
 export default function BoardCharacter({
@@ -19,6 +20,7 @@ export default function BoardCharacter({
   isActive,
   playerIndex,
   isMoving,
+  size = 32,
 }: BoardCharacterProps) {
   const character = getCharacterById(characterId);
   if (!character) return null;
@@ -31,9 +33,9 @@ export default function BoardCharacter({
       className="relative flex flex-col items-center"
       animate={
         isMoving
-          ? { y: [0, -8, 0], scale: [1, 1.1, 1] }
+          ? { y: [0, -6, 0], scale: [1, 1.08, 1] }
           : isActive
-          ? { y: [0, -3, 0] }
+          ? { y: [0, -2, 0] }
           : { y: 0 }
       }
       transition={{
@@ -45,18 +47,18 @@ export default function BoardCharacter({
       {/* Active glow ring */}
       {isActive && (
         <motion.div
-          animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.15, 1] }}
+          animate={{ opacity: [0.3, 0.7, 0.3], scale: [1, 1.12, 1] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
-          className="absolute -inset-2 rounded-full bg-gradient-to-r from-primary-500/30 to-secondary-500/30 blur-sm"
+          className="absolute -inset-[3px] rounded-full bg-gradient-to-r from-primary-500/25 to-secondary-500/25 blur-[2px]"
         />
       )}
 
       {/* Character */}
-      <div className="relative" style={{ filter: isActive ? "brightness(1.2)" : "brightness(0.9)" }}>
+      <div className="relative" style={{ filter: isActive ? "brightness(1.15)" : "brightness(0.85)" }}>
         <AnimatedCharacter
           character={character}
           emotion={emotion}
-          size={52}
+          size={size}
           isMoving={isMoving}
         />
       </div>
@@ -64,7 +66,7 @@ export default function BoardCharacter({
       {/* Name label */}
       <div
         className={`
-          mt-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold whitespace-nowrap border
+          mt-[1px] px-1.5 py-[1px] rounded-full text-[6px] sm:text-[7px] font-bold whitespace-nowrap border leading-tight
           ${playerIndex === 0
             ? "bg-primary-600/90 text-white border-primary-400/50"
             : "bg-secondary-600/90 text-white border-secondary-400/50"
