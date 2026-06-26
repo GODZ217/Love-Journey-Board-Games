@@ -6,7 +6,6 @@ import {
   GameState,
   GamePhase,
   Player,
-  Tile,
   CoupleReport,
   GameStats,
   TileType,
@@ -41,13 +40,11 @@ interface GameStore extends GameState {
   setPlayers: (players: [Player, Player]) => void;
   setCharacter: (playerIndex: number, characterId: string) => void;
   rollDice: () => void;
-  movePlayer: () => void;
   answerQuestion: (points: number) => void;
-  nextTurn: () => void;
   finishGame: () => void;
-  setSoundEnabled: (enabled: boolean) => void;
-  toggleSound: () => void;
+  nextTurn: () => void;
   resetGame: () => void;
+  toggleSound: () => void;
 }
 
 const generateCoupleReport = (stats: GameStats): CoupleReport => {
@@ -107,6 +104,12 @@ const generateCoupleReport = (stats: GameStats): CoupleReport => {
   };
 };
 
+const TIMING = {
+  DICE_ROLL: 800,
+  MOVE_STEP: 600,
+  TILE_EFFECT: 900,
+};
+
 export const useGameStore = create<GameStore>()(
   persist(
     (set, get) => ({
@@ -156,94 +159,93 @@ export const useGameStore = create<GameStore>()(
       rollDice: () => {
         const state = get();
         if (state.isRolling || state.showQuestion) return;
+
         soundEngine.dice();
-        set({ isRolling: true, diceValue: null });
+        set({ isRolling: true, diceValue: null, boardAnimation: false });
 
         const value = Math.floor(Math.random() * 6) + 1;
+
         setTimeout(() => {
+          const current = get();
           set({ diceValue: value, isRolling: false });
-        }, 800);
-      },
 
-      movePlayer: () => {
-        const state = get();
-        if (state.diceValue === null) return;
+          setTimeout(() => {
+            const playerIndex = current.currentPlayerIndex;
+            const player = current.players[playerIndex];
+            const steps = value;
+            const newPosition = Math.min(player.position + steps, BOARD_SIZE);
+            const sl = getSnakeOrLadder(newPosition);
 
-        const playerIndex = state.currentPlayerIndex;
-        const player = state.players[playerIndex];
-        const steps = state.diceValue;
-        const newPosition = Math.min(player.position + steps, BOARD_SIZE);
-        const sl = getSnakeOrLadder(newPosition);
+            let finalPosition = newPosition;
+            let extraPoints = 0;
 
-        let finalPosition = newPosition;
-        let extraPoints = 0;
+            if (sl) {
+              finalPosition = sl.end;
+              if (sl.type === "ladder") {
+                extraPoints = 3;
+                soundEngine.ladder();
+              } else {
+                soundEngine.snake();
+              }
+            }
 
-        if (sl) {
-          finalPosition = sl.end;
-          if (sl.type === "ladder") {
-            extraPoints = 3;
-            soundEngine.ladder();
-          } else {
-            soundEngine.snake();
-          }
-        }
+            const newPlayers = [...current.players] as [Player, Player];
+            newPlayers[playerIndex] = {
+              ...player,
+              position: finalPosition,
+            };
 
-        const newPlayers = [...state.players] as [Player, Player];
-        newPlayers[playerIndex] = {
-          ...player,
-          position: finalPosition > newPosition ? finalPosition : finalPosition,
-        };
-
-        const newStats = {
-          ...state.stats,
-          totalSteps: state.stats.totalSteps + steps,
-          laddersHit: sl?.type === "ladder" ? state.stats.laddersHit + 1 : state.stats.laddersHit,
-          snakesHit: sl?.type === "snake" ? state.stats.snakesHit + 1 : state.stats.snakesHit,
-          totalScore: state.stats.totalScore + extraPoints,
-        };
-
-        set({
-          players: newPlayers,
-          boardAnimation: true,
-          stats: newStats,
-          diceValue: null,
-        });
-
-        // After movement, check tile type and show question if needed
-        setTimeout(() => {
-          const tileType = getTileType(finalPosition);
-          const hasSL = !!getSnakeOrLadder(finalPosition);
-
-          if (tileType !== "normal" || hasSL) {
-            const currentState = get();
-            const currentPlayer = currentState.players[playerIndex];
-            const category = getQuestionCategory(tileType) as QuestionCategory;
-            const question = getRandomQuestion(category, currentPlayer.gender);
-
-            soundEngine.question();
+            const newStats = {
+              ...current.stats,
+              totalSteps: current.stats.totalSteps + steps,
+              laddersHit: sl?.type === "ladder" ? current.stats.laddersHit + 1 : current.stats.laddersHit,
+              snakesHit: sl?.type === "snake" ? current.stats.snakesHit + 1 : current.stats.snakesHit,
+              totalScore: current.stats.totalScore + extraPoints,
+            };
 
             set({
-              showQuestion: true,
-              currentQuestion: question,
-              currentTile: {
-                id: finalPosition,
-                number: finalPosition,
-                type: tileType,
-                x: 0,
-                y: 0,
-                hasSnake: sl?.type === "snake" ? { end: sl.end } : undefined,
-                hasLadder: sl?.type === "ladder" ? { end: sl.end } : undefined,
-              },
-              boardAnimation: false,
+              players: newPlayers,
+              stats: newStats,
+              diceValue: null,
+              boardAnimation: true,
             });
-          } else if (finalPosition >= BOARD_SIZE) {
-            set({ boardAnimation: false });
-            get().finishGame();
-          } else {
-            set({ boardAnimation: false });
-            get().nextTurn();
-          }
-        }, 1000);
+
+            setTimeout(() => {
+              const tileType = getTileType(finalPosition);
+              const hasSL = !!getSnakeOrLadder(finalPosition);
+
+              if (tileType !== "normal" || hasSL) {
+                const afterMove = get();
+                const cp = afterMove.players[playerIndex];
+                const category = getQuestionCategory(tileType) as QuestionCategory;
+                const question = getRandomQuestion(category, cp.gender);
+
+                soundEngine.question();
+
+                set({
+                  showQuestion: true,
+                  currentQuestion: question,
+                  currentTile: {
+                    id: finalPosition,
+                    number: finalPosition,
+                    type: tileType,
+                    x: 0,
+                    y: 0,
+                    hasSnake: sl?.type === "snake" ? { end: sl.end } : undefined,
+                    hasLadder: sl?.type === "ladder" ? { end: sl.end } : undefined,
+                  },
+                  boardAnimation: false,
+                });
+              } else if (finalPosition >= BOARD_SIZE) {
+                set({ boardAnimation: false });
+                get().finishGame();
+              } else {
+                set({ boardAnimation: false });
+                get().nextTurn();
+              }
+            }, TIMING.TILE_EFFECT);
+          }, TIMING.MOVE_STEP);
+        }, TIMING.DICE_ROLL);
       },
 
       answerQuestion: (points) => {
@@ -291,8 +293,7 @@ export const useGameStore = create<GameStore>()(
           unlockedAchievements: [...state.unlockedAchievements, ...newAchievements],
         });
 
-        // Check if reached the end
-        const currentPlayer = state.players[state.currentPlayerIndex];
+        const currentPlayer = get().players[state.currentPlayerIndex];
         if (currentPlayer.position >= BOARD_SIZE) {
           get().finishGame();
         } else {
@@ -330,11 +331,6 @@ export const useGameStore = create<GameStore>()(
           unlockedAchievements: [...state.unlockedAchievements, ...achievements],
           showVictory: true,
         });
-      },
-
-      setSoundEnabled: (enabled) => {
-        soundEngine.setEnabled(enabled);
-        set({ soundEnabled: enabled });
       },
 
       toggleSound: () => {

@@ -1,8 +1,7 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import AnimatedCharacter, { CharEmotion } from "./AnimatedCharacter";
-import { Character } from "@/types";
 import { getCharacterById } from "@/data/characters";
 
 interface BoardCharacterProps {
@@ -17,7 +16,6 @@ interface BoardCharacterProps {
 export default function BoardCharacter({
   characterId,
   playerName,
-  position,
   isActive,
   playerIndex,
   isMoving,
@@ -30,29 +28,48 @@ export default function BoardCharacter({
   return (
     <motion.div
       layout
-      className="absolute z-20 flex flex-col items-center pointer-events-none"
-      style={{
-        bottom: "100%",
-        left: "50%",
-        transform: "translateX(-50%)",
+      className="relative flex flex-col items-center"
+      animate={
+        isMoving
+          ? { y: [0, -8, 0], scale: [1, 1.1, 1] }
+          : isActive
+          ? { y: [0, -3, 0] }
+          : { y: 0 }
+      }
+      transition={{
+        duration: isMoving ? 0.4 : 1.5,
+        repeat: Infinity,
+        ease: "easeInOut",
       }}
-      animate={isActive ? { scale: 1.1 } : { scale: 1 }}
-      transition={{ type: "spring", stiffness: 300, damping: 15 }}
     >
-      <AnimatedCharacter
-        character={character}
-        emotion={emotion}
-        size={36}
-        isMoving={isMoving}
-      />
+      {/* Active glow ring */}
+      {isActive && (
+        <motion.div
+          animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.15, 1] }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+          className="absolute -inset-2 rounded-full bg-gradient-to-r from-primary-500/30 to-secondary-500/30 blur-sm"
+        />
+      )}
+
+      {/* Character */}
+      <div className="relative" style={{ filter: isActive ? "brightness(1.2)" : "brightness(0.9)" }}>
+        <AnimatedCharacter
+          character={character}
+          emotion={emotion}
+          size={40}
+          isMoving={isMoving}
+        />
+      </div>
+
+      {/* Name label */}
       <div
         className={`
-          mt-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold whitespace-nowrap
+          mt-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold whitespace-nowrap border
           ${playerIndex === 0
-            ? "bg-primary-500/80 text-white"
-            : "bg-secondary-500/80 text-white"
+            ? "bg-primary-600/90 text-white border-primary-400/50"
+            : "bg-secondary-600/90 text-white border-secondary-400/50"
           }
-          border border-white/20
+          shadow-lg
         `}
       >
         {playerName}

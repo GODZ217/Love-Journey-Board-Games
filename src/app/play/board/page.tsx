@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Board from "@/components/board/Board";
@@ -16,7 +16,6 @@ import { getCharacterById } from "@/data/characters";
 
 export default function BoardPage() {
   const router = useRouter();
-  const moveTriggered = useRef(false);
 
   const {
     phase,
@@ -26,11 +25,9 @@ export default function BoardPage() {
     isRolling,
     showQuestion,
     currentQuestion,
-    currentTile,
     stats,
     unlockedAchievements,
     rollDice,
-    movePlayer,
     answerQuestion,
     resetGame,
   } = useGameStore();
@@ -52,19 +49,8 @@ export default function BoardPage() {
 
   const handleRoll = useCallback(() => {
     if (isRolling || showQuestion) return;
-    moveTriggered.current = false;
     rollDice();
   }, [isRolling, showQuestion, rollDice]);
-
-  useEffect(() => {
-    if (diceValue !== null && !isRolling && !moveTriggered.current) {
-      moveTriggered.current = true;
-      const timer = setTimeout(() => {
-        movePlayer();
-      }, 600);
-      return () => clearTimeout(timer);
-    }
-  }, [diceValue, isRolling, movePlayer]);
 
   const handleAnswer = useCallback(
     (points: number) => {
@@ -77,7 +63,6 @@ export default function BoardPage() {
     setShowAchievement([]);
   }, []);
 
-  // Watch for new achievements
   useEffect(() => {
     if (unlockedAchievements.length > 0) {
       setShowAchievement((prev) => {
@@ -121,10 +106,10 @@ export default function BoardPage() {
                 <motion.div
                   key={p.id}
                   animate={isActive ? { scale: 1.05 } : { scale: 1 }}
-                  className={`flex items-center gap-2 p-2 rounded-xl transition-all flex-1 ${
+                  className={`flex items-center gap-2 p-2 rounded-xl transition-all flex-1 border ${
                     isActive
-                      ? "bg-gradient-to-r from-primary-500/20 to-secondary-500/20 border border-primary-500/30"
-                      : "bg-white/5 border border-white/5"
+                      ? "bg-gradient-to-r from-primary-500/20 to-secondary-500/20 border-primary-500/40 shadow-lg shadow-primary-500/10"
+                      : "bg-white/5 border-white/5"
                   }`}
                 >
                   <div className="flex-shrink-0">
@@ -132,7 +117,7 @@ export default function BoardPage() {
                       <AnimatedCharacter
                         character={char}
                         emotion={isActive ? "happy" : "idle"}
-                        size={36}
+                        size={40}
                       />
                     ) : (
                       <span className="text-xl">👤</span>
@@ -141,18 +126,16 @@ export default function BoardPage() {
                   <div className="text-left flex-1 min-w-0">
                     <p className={`text-xs sm:text-sm font-bold truncate ${isActive ? "text-white" : "text-white/50"}`}>
                       {p.name}
-                      {isActive && (
-                        <motion.span
-                          animate={{ opacity: [0, 1] }}
-                          transition={{ repeat: Infinity, duration: 1 }}
-                          className="text-primary-400 ml-1"
-                        >
-                          ▶
-                        </motion.span>
-                      )}
                     </p>
-                    <p className="text-[10px] text-white/30">Tile {p.position}</p>
+                    <p className="text-[10px] text-white/30">Tile {p.position}/100</p>
                   </div>
+                  {isActive && (
+                    <motion.div
+                      animate={{ opacity: [1, 0.3, 1] }}
+                      transition={{ repeat: Infinity, duration: 1.5 }}
+                      className="w-2 h-2 rounded-full bg-primary-400"
+                    />
+                  )}
                 </motion.div>
               );
             })}
@@ -194,7 +177,7 @@ export default function BoardPage() {
                 value={diceValue}
                 isRolling={isRolling}
                 onRoll={handleRoll}
-                disabled={showQuestion || !!diceValue || isRolling}
+                disabled={showQuestion || isRolling}
               />
             </div>
           </div>
@@ -229,26 +212,18 @@ export default function BoardPage() {
               <GlassCard className="p-6">
                 <h3 className="text-white font-bold text-lg mb-4 text-center">Game Stats</h3>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between text-white/70">
-                    <span>😂 Funny</span>
-                    <span className="text-white">{stats.funnyCount}</span>
-                  </div>
-                  <div className="flex justify-between text-white/70">
-                    <span>💭 Deep Talk</span>
-                    <span className="text-white">{stats.deepCount}</span>
-                  </div>
-                  <div className="flex justify-between text-white/70">
-                    <span>📸 Memory</span>
-                    <span className="text-white">{stats.memoryCount}</span>
-                  </div>
-                  <div className="flex justify-between text-white/70">
-                    <span>🎯 Challenge</span>
-                    <span className="text-white">{stats.challengeCount}</span>
-                  </div>
-                  <div className="flex justify-between text-white/70">
-                    <span>🔥 Intimacy</span>
-                    <span className="text-white">{stats.intimacyCount}</span>
-                  </div>
+                  {[
+                    { label: "😂 Funny", value: stats.funnyCount },
+                    { label: "💭 Deep Talk", value: stats.deepCount },
+                    { label: "📸 Memory", value: stats.memoryCount },
+                    { label: "🎯 Challenge", value: stats.challengeCount },
+                    { label: "🔥 Intimacy", value: stats.intimacyCount },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex justify-between text-white/70">
+                      <span>{label}</span>
+                      <span className="text-white">{value}</span>
+                    </div>
+                  ))}
                   <div className="border-t border-white/10 pt-2 mt-2">
                     <div className="flex justify-between text-white/70 font-bold">
                       <span>Total Score</span>

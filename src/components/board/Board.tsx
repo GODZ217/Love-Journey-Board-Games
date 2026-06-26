@@ -44,15 +44,16 @@ export default function Board() {
                     <div className="absolute inset-0 z-20 pointer-events-none">
                       {playersOnTile.map((p, i) => {
                         const isActive = p.id === players[currentPlayerIndex]?.id;
-                        const offsetX = playersOnTile.length > 1 && i === 1 ? 6 : 0;
+                        const offsetX = playersOnTile.length > 1 && i === 1 ? 8 : 0;
+                        const offsetY = playersOnTile.length > 1 && i === 1 ? -4 : 0;
                         return (
                           <div
                             key={p.id}
                             className="absolute"
                             style={{
-                              bottom: 0,
+                              bottom: "-12px",
                               left: "50%",
-                              transform: `translateX(calc(-50% + ${offsetX}px))`,
+                              transform: `translateX(calc(-50% + ${offsetX}px)) translateY(${offsetY}px)`,
                             }}
                           >
                             <BoardCharacter
