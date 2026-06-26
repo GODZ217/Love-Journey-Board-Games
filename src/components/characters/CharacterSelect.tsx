@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Character } from "@/types";
+import AnimatedCharacter from "./AnimatedCharacter";
 
 interface CharacterSelectProps {
   characters: Character[];
@@ -41,13 +42,11 @@ export default function CharacterSelect({
           `}
         >
           <div className="flex flex-col items-center gap-2">
-            <motion.div
-              animate={{ y: [0, -3, 0] }}
-              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-              className="text-4xl sm:text-5xl"
-            >
-              {char.emojis.idle}
-            </motion.div>
+            <AnimatedCharacter
+              character={char}
+              emotion={selectedId === char.id ? "happy" : "idle"}
+              size={64}
+            />
             <div className="text-center">
               <p className="text-white font-bold text-sm sm:text-base truncate">
                 {char.name}

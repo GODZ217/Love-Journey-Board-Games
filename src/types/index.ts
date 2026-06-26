@@ -52,6 +52,16 @@ export type SnakeOrLadder = {
   type: "snake" | "ladder";
 };
 
+export type CharacterStyle = {
+  hairColor: string;
+  hairStyle: "male_short" | "male_medium" | "female_long" | "female_ponytail" | "female_twintail";
+  eyeColor: string;
+  outfitColor: string;
+  accentColor: string;
+  skinTone: string;
+  accessory: "none" | "glasses" | "hat" | "ribbon" | "crown" | "mask" | "earring";
+};
+
 export type Character = {
   id: string;
   name: string;
@@ -67,6 +77,7 @@ export type Character = {
     thinking: string;
     victory: string;
   };
+  style: CharacterStyle;
 };
 
 export type Achievement = {

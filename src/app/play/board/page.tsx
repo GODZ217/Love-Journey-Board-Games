@@ -7,6 +7,7 @@ import Board from "@/components/board/Board";
 import Dice from "@/components/dice/Dice";
 import QuestionCard from "@/components/questions/QuestionCard";
 import AchievementPopup from "@/components/ui/AchievementPopup";
+import AnimatedCharacter from "@/components/characters/AnimatedCharacter";
 import Particles from "@/components/ui/Particles";
 import SoundToggle from "@/components/sound/SoundToggle";
 import GlassCard from "@/components/ui/GlassCard";
@@ -126,13 +127,17 @@ export default function BoardPage() {
                       : "bg-white/5 border border-white/5"
                   }`}
                 >
-                  <motion.span
-                    animate={isActive ? { y: [0, -2, 0] } : {}}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
-                    className="text-xl sm:text-2xl"
-                  >
-                    {char?.emojis.idle || "👤"}
-                  </motion.span>
+                  <div className="flex-shrink-0">
+                    {char ? (
+                      <AnimatedCharacter
+                        character={char}
+                        emotion={isActive ? "happy" : "idle"}
+                        size={36}
+                      />
+                    ) : (
+                      <span className="text-xl">👤</span>
+                    )}
+                  </div>
                   <div className="text-left flex-1 min-w-0">
                     <p className={`text-xs sm:text-sm font-bold truncate ${isActive ? "text-white" : "text-white/50"}`}>
                       {p.name}

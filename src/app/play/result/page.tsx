@@ -5,9 +5,11 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import GlassCard from "@/components/ui/GlassCard";
 import Button from "@/components/ui/Button";
+import AnimatedCharacter from "@/components/characters/AnimatedCharacter";
 import Particles from "@/components/ui/Particles";
 import SoundToggle from "@/components/sound/SoundToggle";
 import { useGameStore } from "@/store/gameStore";
+import { getCharacterById } from "@/data/characters";
 import { achievements } from "@/data/achievements";
 import { CoupleReport } from "@/types";
 
@@ -52,7 +54,7 @@ function MeterBar({ label, icon, value, color }: { label: string; icon: string; 
 
 export default function ResultPage() {
   const router = useRouter();
-  const { phase, report, stats, unlockedAchievements, resetGame } = useGameStore();
+  const { phase, report, stats, players, unlockedAchievements, resetGame } = useGameStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -95,13 +97,20 @@ export default function ResultPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
-          <motion.div
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-            className="text-5xl sm:text-6xl mb-3"
-          >
-            💕
-          </motion.div>
+          <div className="flex items-center justify-center gap-4 mb-3">
+            {players.map((p, i) => {
+              const char = getCharacterById(p.characterId);
+              if (!char) return null;
+              return (
+                <AnimatedCharacter
+                  key={p.id}
+                  character={char}
+                  emotion="victory"
+                  size={80}
+                />
+              );
+            })}
+          </div>
           <h1 className="text-3xl sm:text-4xl font-bold">
             <span className="text-gradient">Couple Report</span>
           </h1>

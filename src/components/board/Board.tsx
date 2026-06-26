@@ -3,14 +3,16 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import Tile from "./Tile";
+import BoardCharacter from "../characters/BoardCharacter";
 import { useGameStore } from "@/store/gameStore";
 import { createBoard } from "@/utils/board";
 import { TILES_PER_ROW } from "@/data/board";
 
 export default function Board() {
   const players = useGameStore((s) => s.players);
-  const tiles = useMemo(() => createBoard(), []);
+  const currentPlayerIndex = useGameStore((s) => s.currentPlayerIndex);
   const boardAnimation = useGameStore((s) => s.boardAnimation);
+  const tiles = useMemo(() => createBoard(), []);
 
   const rows: typeof tiles[] = [];
   for (let i = 0; i < tiles.length; i += TILES_PER_ROW) {
@@ -33,14 +35,42 @@ export default function Board() {
             className="flex gap-0.5 sm:gap-1"
             style={{ justifyContent: rowIndex % 2 === 0 ? "flex-start" : "flex-end" }}
           >
-            {row.map((tile) => (
-              <Tile
-                key={tile.id}
-                tile={tile}
-                players={players}
-                size={tileSize}
-              />
-            ))}
+            {row.map((tile) => {
+              const playersOnTile = players.filter((p) => p.position === tile.number);
+
+              return (
+                <Tile key={tile.id} tile={tile} size={tileSize}>
+                  {playersOnTile.length > 0 && (
+                    <div className="absolute inset-0 z-20 pointer-events-none">
+                      {playersOnTile.map((p, i) => {
+                        const isActive = p.id === players[currentPlayerIndex]?.id;
+                        const offsetX = playersOnTile.length > 1 && i === 1 ? 6 : 0;
+                        return (
+                          <div
+                            key={p.id}
+                            className="absolute"
+                            style={{
+                              bottom: 0,
+                              left: "50%",
+                              transform: `translateX(calc(-50% + ${offsetX}px))`,
+                            }}
+                          >
+                            <BoardCharacter
+                              characterId={p.characterId}
+                              playerName={p.name}
+                              position={p.position}
+                              isActive={isActive}
+                              playerIndex={players.indexOf(p)}
+                              isMoving={boardAnimation && isActive}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </Tile>
+              );
+            })}
           </div>
         ))}
       </div>
