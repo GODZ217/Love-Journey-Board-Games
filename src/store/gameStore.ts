@@ -253,29 +253,27 @@ export const useGameStore = create<GameStore>()(
             setTimeout(() => {
               const current = get();
               const tileType = getTileType(finalPos);
-              const hasSL = !!getSnakeOrLadder(finalPos);
 
               set({ boardAnimation: false });
 
-              if (tileType !== "normal" || hasSL) {
-                const cp = current.players[playerIndex];
-                const category = getQuestionCategory(tileType) as QuestionCategory;
-                const question = getRandomQuestion(category, cp.gender);
-                soundEngine.question();
-                set({
-                  showQuestion: true,
-                  currentQuestion: question,
-                  currentTile: {
-                    id: finalPos, number: finalPos, type: tileType,
-                    x: 0, y: 0,
-                    hasSnake: sl?.type === "snake" ? { end: sl.end } : undefined,
-                  },
-                });
-              } else if (finalPos >= BOARD_SIZE) {
+              if (finalPos >= BOARD_SIZE) {
                 get().finishGame();
-              } else {
-                get().nextTurn();
+                return;
               }
+
+              const cp = current.players[playerIndex];
+              const category = getQuestionCategory(tileType) as QuestionCategory;
+              const question = getRandomQuestion(category, cp.gender);
+              soundEngine.question();
+              set({
+                showQuestion: true,
+                currentQuestion: question,
+                currentTile: {
+                  id: finalPos, number: finalPos, type: tileType,
+                  x: 0, y: 0,
+                  hasSnake: sl?.type === "snake" ? { end: sl.end } : undefined,
+                },
+              });
             }, TIMING.POST_MOVE);
           }
           return;
