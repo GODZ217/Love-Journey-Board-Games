@@ -1,0 +1,12 @@
+services:
+  love-journey:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: love-journey-game
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
