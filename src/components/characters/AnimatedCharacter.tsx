@@ -55,6 +55,15 @@ function Hair({ style, color }: { style: string; color: string }) {
           <path d="M40 8 Q44 -2 46 2 Q48 6 42 10" fill={color} opacity={0.7} />
         </g>
       );
+    case "female_ponytail":
+      return (
+        <g>
+          <path d="M18 10 Q14 2 22 0 Q30 -2 38 6 Q42 12 38 16" fill={color} />
+          <ellipse cx="34" cy="-4" rx="6" ry="8" fill={color} />
+          <path d="M32 -6 Q34 -12 36 -6" fill={color} />
+          <path d="M20 12 Q16 4 24 2 Q32 0 36 8" fill={color} opacity={0.7} />
+        </g>
+      );
     default:
       return null;
   }
