@@ -78,114 +78,114 @@ export default function BoardPage() {
   if (!mounted) return null;
 
   return (
-    <main className="relative min-h-screen bg-gradient-to-br from-[#0f0a1a] via-[#1a0a2e] to-[#0a1628] overflow-hidden">
+    <main
+      className="relative flex flex-col bg-gradient-to-br from-[#0f0a1a] via-[#1a0a2e] to-[#0a1628]"
+      style={{ height: "100dvh", overflow: "hidden" }}
+    >
       <Particles />
       <SoundToggle />
 
       <div className="absolute top-0 left-0 w-full h-64 bg-primary-500/10 blur-[100px]" />
 
-      <div className="relative z-20 flex flex-col items-center min-h-screen p-2 sm:p-3 pb-28">
+      {/* Main content area */}
+      <div className="relative z-20 flex flex-col flex-1 min-h-0 p-1 sm:p-2 gap-[2px] sm:gap-1">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-lg text-center mb-1 sm:mb-2"
+          className="text-center"
         >
-          <h1 className="text-lg sm:text-2xl font-bold">
+          <h1 className="text-sm sm:text-lg md:text-xl font-bold leading-tight">
             <span className="text-gradient">Love Journey</span>
           </h1>
-          <p className="text-white/40 text-[10px] sm:text-xs">
+          <p className="text-white/40 text-[9px] sm:text-[11px] leading-tight">
             {players[0].name} ❤️ {players[1].name}
           </p>
         </motion.div>
 
         {/* Player info bar */}
-        <div className="w-full max-w-lg mb-1 sm:mb-2">
-          <div className="flex items-center justify-between gap-2">
-            {players.map((p, i) => {
-              const char = getCharacterById(p.characterId);
-              const isActive = i === currentPlayerIndex;
-              return (
-                <motion.div
-                  key={p.id}
-                  animate={isActive ? { scale: 1.05 } : { scale: 1 }}
-                  className={`flex items-center gap-1 sm:gap-2 p-1.5 sm:p-2 rounded-xl transition-all flex-1 border ${
-                    isActive
-                      ? "bg-gradient-to-r from-primary-500/20 to-secondary-500/20 border-primary-500/40 shadow-lg shadow-primary-500/10"
-                      : "bg-white/5 border-white/5"
-                  }`}
-                >
-                  <div className="flex-shrink-0">
-                    {char ? (
-                      <AnimatedCharacter
-                        character={char}
-                        emotion={isActive ? "happy" : "idle"}
-                        size={28}
-                      />
-                    ) : (
-                      <span className="text-lg">👤</span>
-                    )}
-                  </div>
-                  <div className="text-left flex-1 min-w-0">
-                    <p className={`text-[10px] sm:text-sm font-bold truncate ${isActive ? "text-white" : "text-white/50"}`}>
-                      {p.name}
-                    </p>
-                    <p className="text-[8px] sm:text-[10px] text-white/30">Tile {p.position}/100</p>
-                  </div>
-                  {isActive && (
-                    <motion.div
-                      animate={{ opacity: [1, 0.3, 1] }}
-                      transition={{ repeat: Infinity, duration: 1.5 }}
-                      className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary-400"
+        <div className="flex items-center justify-between gap-1 sm:gap-2">
+          {players.map((p, i) => {
+            const char = getCharacterById(p.characterId);
+            const isActive = i === currentPlayerIndex;
+            return (
+              <motion.div
+                key={p.id}
+                animate={isActive ? { scale: 1.05 } : { scale: 1 }}
+                className={`flex items-center gap-1 p-1 sm:p-1.5 rounded-xl transition-all flex-1 border ${
+                  isActive
+                    ? "bg-gradient-to-r from-primary-500/20 to-secondary-500/20 border-primary-500/40 shadow-lg shadow-primary-500/10"
+                    : "bg-white/5 border-white/5"
+                }`}
+              >
+                <div className="flex-shrink-0">
+                  {char ? (
+                    <AnimatedCharacter
+                      character={char}
+                      emotion={isActive ? "happy" : "idle"}
+                      size={22}
                     />
+                  ) : (
+                    <span className="text-base">👤</span>
                   )}
-                </motion.div>
-              );
-            })}
-          </div>
+                </div>
+                <div className="text-left flex-1 min-w-0">
+                  <p className={`text-[9px] sm:text-xs font-bold truncate ${isActive ? "text-white" : "text-white/50"}`}>
+                    {p.name}
+                  </p>
+                  <p className="text-[7px] sm:text-[9px] text-white/30">Tile {p.position}</p>
+                </div>
+                {isActive && (
+                  <motion.div
+                    animate={{ opacity: [1, 0.3, 1] }}
+                    transition={{ repeat: Infinity, duration: 1.5 }}
+                    className="w-1.5 h-1.5 rounded-full bg-primary-400 flex-shrink-0"
+                  />
+                )}
+              </motion.div>
+            );
+          })}
         </div>
 
         {/* Score bar */}
-        <GlassCard className="w-full max-w-lg mb-1 sm:mb-2 p-2 sm:p-3">
-          <div className="flex items-center justify-between text-[10px] sm:text-xs text-white/60">
+        <GlassCard className="w-full p-1.5 sm:p-2">
+          <div className="flex items-center justify-between text-[9px] sm:text-[11px] text-white/60">
             <span className="flex items-center gap-1">
-              💖 Score: <span className="text-primary-300 font-bold">{stats.totalScore}</span>
+              💖 <span className="text-primary-300 font-bold">{stats.totalScore}</span>
             </span>
             <span className="flex items-center gap-1">
-              💬 Questions: <span className="text-secondary-300 font-bold">{stats.questionsAnswered}</span>
+              💬 <span className="text-secondary-300 font-bold">{stats.questionsAnswered}</span>
             </span>
             <button
               onClick={() => setShowStats(!showStats)}
-              className="text-white/40 hover:text-white/70 transition-colors"
+              className="text-white/40 hover:text-white/70 transition-colors text-xs"
             >
               📊
             </button>
           </div>
         </GlassCard>
 
-        {/* Board */}
-        <div className="flex-1 flex items-start justify-center w-full min-h-0 py-1">
-          <Board />
-        </div>
-
-        {/* Dice - Fixed bottom */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-0 left-0 right-0 p-3 pb-5 bg-gradient-to-t from-dark via-dark/95 to-transparent z-30"
-        >
-          <div className="max-w-lg mx-auto">
-            <div className="flex flex-col items-center gap-2">
-              <Dice
-                value={diceValue}
-                isRolling={isRolling}
-                onRoll={handleRoll}
-                disabled={showQuestion || isRolling}
-              />
-            </div>
+        {/* Board - fills remaining vertical space, maintains square */}
+        <div className="flex-1 flex items-center justify-center min-h-0">
+          <div className="h-full aspect-square max-w-full max-h-full">
+            <Board />
           </div>
-        </motion.div>
+        </div>
       </div>
+
+      {/* Dice bar - fixed at bottom */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative z-30 flex-shrink-0 flex justify-center pb-1 sm:pb-2 pt-[2px]"
+      >
+        <Dice
+          value={diceValue}
+          isRolling={isRolling}
+          onRoll={handleRoll}
+          disabled={showQuestion || isRolling}
+        />
+      </motion.div>
 
       {/* Question Card Modal */}
       {showQuestion && currentQuestion && (
@@ -216,9 +216,9 @@ export default function BoardPage() {
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-sm"
             >
-              <GlassCard className="p-6">
-                <h3 className="text-white font-bold text-lg mb-4 text-center">Game Stats</h3>
-                <div className="space-y-2 text-sm">
+              <GlassCard className="p-4">
+                <h3 className="text-white font-bold text-base mb-3 text-center">Game Stats</h3>
+                <div className="space-y-1.5 text-xs">
                   {[
                     { label: "😂 Funny", value: stats.funnyCount },
                     { label: "💭 Deep Talk", value: stats.deepCount },
@@ -231,7 +231,7 @@ export default function BoardPage() {
                       <span className="text-white">{value}</span>
                     </div>
                   ))}
-                  <div className="border-t border-white/10 pt-2 mt-2">
+                  <div className="border-t border-white/10 pt-1.5 mt-1.5">
                     <div className="flex justify-between text-white/70 font-bold">
                       <span>Total Score</span>
                       <span className="text-primary-300">{stats.totalScore}</span>
@@ -240,7 +240,7 @@ export default function BoardPage() {
                 </div>
                 <button
                   onClick={() => setShowStats(false)}
-                  className="w-full mt-4 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm hover:bg-white/10 transition-all"
+                  className="w-full mt-3 px-4 py-1.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-xs hover:bg-white/10 transition-all"
                 >
                   Close
                 </button>
