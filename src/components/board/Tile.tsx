@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Tile as TileType } from "@/types";
 import { getTileColor, getTileIcon, getTileLabel } from "@/utils/board";
-import { ladders, snakes } from "@/data/board";
+import { ladders, snakes, isSlide } from "@/data/board";
 
 interface TileProps {
   tile: TileType;
@@ -62,12 +62,12 @@ export default function Tile({ tile, size, onClick, children }: TileProps) {
         )}
       </div>
 
-      {/* Snake/Ladder indicator */}
+      {/* Snake/Ladder/Slide indicator */}
       {ladder && (
         <motion.span
           animate={{ y: [0, -2, 0] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
-          className="absolute -top-1 right-0 text-[8px] z-10"
+          className="absolute -top-1 right-0 text-[10px] z-10"
         >
           🪜
         </motion.span>
@@ -76,9 +76,18 @@ export default function Tile({ tile, size, onClick, children }: TileProps) {
         <motion.span
           animate={{ y: [0, 2, 0] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
-          className="absolute -bottom-1 right-0 text-[8px] z-10"
+          className="absolute -bottom-1 right-0 text-[10px] z-10"
         >
           🐍
+        </motion.span>
+      )}
+      {isSlide(tile.number) && (
+        <motion.span
+          animate={{ y: [0, -2, 0] }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+          className="absolute -bottom-1 right-0 text-[10px] z-10"
+        >
+          🌈
         </motion.span>
       )}
 

@@ -17,16 +17,19 @@ export const ladders: SnakeOrLadder[] = [
 ];
 
 export const snakes: SnakeOrLadder[] = [
-  { start: 17, end: 7, type: "snake" },
-  { start: 25, end: 10, type: "snake" },
   { start: 34, end: 16, type: "snake" },
-  { start: 43, end: 26, type: "snake" },
   { start: 55, end: 37, type: "snake" },
   { start: 62, end: 45, type: "snake" },
-  { start: 74, end: 57, type: "snake" },
   { start: 87, end: 68, type: "snake" },
-  { start: 93, end: 78, type: "snake" },
   { start: 98, end: 86, type: "snake" },
+];
+
+export const slides: SnakeOrLadder[] = [
+  { start: 17, end: 7, type: "slide" },
+  { start: 25, end: 10, type: "slide" },
+  { start: 43, end: 26, type: "slide" },
+  { start: 74, end: 57, type: "slide" },
+  { start: 93, end: 78, type: "slide" },
 ];
 
 const loveTiles = [6, 18, 32, 48, 58, 70, 82, 96];
@@ -71,14 +74,20 @@ export const getQuestionCategory = (tileType: TileType): string => {
 export const getTilePosition = (tileNumber: number): { row: number; col: number } => {
   const row = Math.floor((tileNumber - 1) / TILES_PER_ROW);
   const isEvenRow = row % 2 === 0;
-  const col = isEvenRow ? (tileNumber - 1) % TILES_PER_ROW : TILES_PER_ROW - 1 - ((tileNumber - 1) % TILES_PER_ROW);
+  const col = isEvenRow
+    ? (tileNumber - 1) % TILES_PER_ROW
+    : TILES_PER_ROW - 1 - ((tileNumber - 1) % TILES_PER_ROW);
   return { row, col };
 };
 
 export const getSnakeOrLadder = (
   position: number
 ): SnakeOrLadder | undefined => {
-  return [...ladders, ...snakes].find((s) => s.start === position);
+  return [...ladders, ...snakes, ...slides].find((s) => s.start === position);
+};
+
+export const isSlide = (position: number): boolean => {
+  return slides.some((s) => s.start === position);
 };
 
 export const getNextPosition = (current: number, dice: number): number => {

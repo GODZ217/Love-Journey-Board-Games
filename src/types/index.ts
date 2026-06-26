@@ -49,7 +49,13 @@ export type Tile = {
 export type SnakeOrLadder = {
   start: number;
   end: number;
-  type: "snake" | "ladder";
+  type: "snake" | "ladder" | "slide";
+};
+
+export type Punishment = {
+  id: number;
+  text: string;
+  type: "funny" | "romantic" | "embarrassing" | "sweet";
 };
 
 export type CharacterStyle = {
@@ -138,4 +144,6 @@ export type GameState = {
   soundEnabled: boolean;
   boardAnimation: boolean;
   showVictory: boolean;
+  showPunishment: boolean;
+  currentPunishment: Punishment | null;
 };

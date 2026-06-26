@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Board from "@/components/board/Board";
 import Dice from "@/components/dice/Dice";
 import QuestionCard from "@/components/questions/QuestionCard";
+import PunishmentCard from "@/components/questions/PunishmentCard";
 import AchievementPopup from "@/components/ui/AchievementPopup";
 import AnimatedCharacter from "@/components/characters/AnimatedCharacter";
 import Particles from "@/components/ui/Particles";
@@ -27,6 +28,8 @@ export default function BoardPage() {
     currentQuestion,
     stats,
     unlockedAchievements,
+    showPunishment,
+    currentPunishment,
     rollDice,
     answerQuestion,
     resetGame,
@@ -187,6 +190,10 @@ export default function BoardPage() {
       {/* Question Card Modal */}
       {showQuestion && currentQuestion && (
         <QuestionCard question={currentQuestion} player={currentPlayer} onAnswer={handleAnswer} />
+      )}
+
+      {showPunishment && currentPunishment && (
+        <PunishmentCard punishment={currentPunishment} />
       )}
 
       {/* Achievement Popup */}

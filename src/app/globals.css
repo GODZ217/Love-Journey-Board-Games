@@ -80,13 +80,16 @@ body {
 
 .board-container {
   width: 100%;
-  max-width: 520px;
+  max-width: 1250px;
   margin: 0 auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .board-container {
     max-width: 100%;
     padding: 0 4px;
+    overflow-x: auto;
   }
 }

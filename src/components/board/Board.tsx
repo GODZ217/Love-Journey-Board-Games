@@ -20,15 +20,26 @@ export default function Board() {
   }
   rows.reverse();
 
-  const tileSize = Math.floor((typeof window !== "undefined" ? Math.min(window.innerWidth - 32, 500) : 400) / TILES_PER_ROW);
+  const screenW = typeof window !== "undefined" ? window.innerWidth : 1200;
+  const isMobile = screenW < 640;
+  const maxBoardWidth = isMobile ? screenW - 16 : 1250;
+  const tileSize = Math.floor(maxBoardWidth / TILES_PER_ROW);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="relative p-2 sm:p-4 rounded-2xl bg-gradient-to-br from-dark/80 via-dark-50/80 to-dark/80 backdrop-blur-xl border border-white/10 shadow-2xl"
+      style={{ width: isMobile ? "100%" : "fit-content", margin: "0 auto" }}
     >
-      <div className="flex flex-col gap-0.5 sm:gap-1">
+      <div
+        className="flex flex-col gap-0.5 sm:gap-1"
+        style={
+          isMobile
+            ? { transform: "scale(1)", transformOrigin: "top left" }
+            : {}
+        }
+      >
         {rows.map((row, rowIndex) => (
           <div
             key={rowIndex}
@@ -44,14 +55,14 @@ export default function Board() {
                     <div className="absolute inset-0 z-20 pointer-events-none">
                       {playersOnTile.map((p, i) => {
                         const isActive = p.id === players[currentPlayerIndex]?.id;
-                        const offsetX = playersOnTile.length > 1 && i === 1 ? 8 : 0;
-                        const offsetY = playersOnTile.length > 1 && i === 1 ? -4 : 0;
+                        const offsetX = playersOnTile.length > 1 && i === 1 ? 10 : 0;
+                        const offsetY = playersOnTile.length > 1 && i === 1 ? -6 : 0;
                         return (
                           <div
                             key={p.id}
                             className="absolute"
                             style={{
-                              bottom: "-12px",
+                              bottom: "-14px",
                               left: "50%",
                               transform: `translateX(calc(-50% + ${offsetX}px)) translateY(${offsetY}px)`,
                             }}

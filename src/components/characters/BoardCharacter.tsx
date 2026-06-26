@@ -56,7 +56,7 @@ export default function BoardCharacter({
         <AnimatedCharacter
           character={character}
           emotion={emotion}
-          size={40}
+          size={52}
           isMoving={isMoving}
         />
       </div>

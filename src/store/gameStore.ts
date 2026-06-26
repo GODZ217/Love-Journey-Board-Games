@@ -10,14 +10,17 @@ import {
   GameStats,
   TileType,
   QuestionCategory,
+  Punishment,
 } from "@/types";
 import { BOARD_SIZE } from "@/data/board";
 import { getRandomQuestion } from "@/data/questions";
+import { getRandomPunishment } from "@/data/punishments";
 import { checkAchievements } from "@/data/achievements";
 import {
   getQuestionCategory,
   getSnakeOrLadder,
   getTileType,
+  isSlide,
 } from "@/data/board";
 import { soundEngine } from "@/lib/sound";
 
@@ -41,6 +44,7 @@ interface GameStore extends GameState {
   setCharacter: (playerIndex: number, characterId: string) => void;
   rollDice: () => void;
   answerQuestion: (points: number) => void;
+  dismissPunishment: () => void;
   finishGame: () => void;
   nextTurn: () => void;
   resetGame: () => void;
@@ -144,6 +148,8 @@ export const useGameStore = create<GameStore>()(
       soundEnabled: true,
       boardAnimation: false,
       showVictory: false,
+      showPunishment: false,
+      currentPunishment: null,
 
       setPhase: (phase) => set({ phase }),
 
@@ -158,7 +164,7 @@ export const useGameStore = create<GameStore>()(
 
       rollDice: () => {
         const state = get();
-        if (state.isRolling || state.showQuestion) return;
+        if (state.isRolling || state.showQuestion || state.showPunishment) return;
 
         soundEngine.dice();
         set({ isRolling: true, diceValue: null, boardAnimation: false });
@@ -184,22 +190,21 @@ export const useGameStore = create<GameStore>()(
               if (sl.type === "ladder") {
                 extraPoints = 3;
                 soundEngine.ladder();
+              } else if (sl.type === "slide") {
+                soundEngine.snake();
               } else {
                 soundEngine.snake();
               }
             }
 
             const newPlayers = [...current.players] as [Player, Player];
-            newPlayers[playerIndex] = {
-              ...player,
-              position: finalPosition,
-            };
+            newPlayers[playerIndex] = { ...player, position: finalPosition };
 
             const newStats = {
               ...current.stats,
               totalSteps: current.stats.totalSteps + steps,
               laddersHit: sl?.type === "ladder" ? current.stats.laddersHit + 1 : current.stats.laddersHit,
-              snakesHit: sl?.type === "snake" ? current.stats.snakesHit + 1 : current.stats.snakesHit,
+              snakesHit: sl?.type === "snake" || sl?.type === "slide" ? current.stats.snakesHit + 1 : current.stats.snakesHit,
               totalScore: current.stats.totalScore + extraPoints,
             };
 
@@ -213,8 +218,16 @@ export const useGameStore = create<GameStore>()(
             setTimeout(() => {
               const tileType = getTileType(finalPosition);
               const hasSL = !!getSnakeOrLadder(finalPosition);
+              const landedOnSlide = sl?.type === "slide";
 
-              if (tileType !== "normal" || hasSL) {
+              if (landedOnSlide) {
+                const punishment = getRandomPunishment();
+                set({
+                  showPunishment: true,
+                  currentPunishment: punishment,
+                  boardAnimation: false,
+                });
+              } else if (tileType !== "normal" || hasSL) {
                 const afterMove = get();
                 const cp = afterMove.players[playerIndex];
                 const category = getQuestionCategory(tileType) as QuestionCategory;
@@ -260,30 +273,16 @@ export const useGameStore = create<GameStore>()(
         newStats.totalScore += points;
 
         switch (question.category) {
-          case "funny":
-            newStats.funnyCount += 1;
-            break;
-          case "deep":
-            newStats.deepCount += 1;
-            break;
-          case "memory":
-            newStats.memoryCount += 1;
-            break;
-          case "challenge":
-            newStats.challengeCount += 1;
-            break;
-          case "intimacy":
-            newStats.intimacyCount += 1;
-            break;
-          case "knowing":
-            newStats.quizCount += 1;
-            break;
+          case "funny": newStats.funnyCount += 1; break;
+          case "deep": newStats.deepCount += 1; break;
+          case "memory": newStats.memoryCount += 1; break;
+          case "challenge": newStats.challengeCount += 1; break;
+          case "intimacy": newStats.intimacyCount += 1; break;
+          case "knowing": newStats.quizCount += 1; break;
         }
 
         const newAchievements = checkAchievements(newStats, state.unlockedAchievements);
-        if (newAchievements.length > 0) {
-          soundEngine.achievement();
-        }
+        if (newAchievements.length > 0) soundEngine.achievement();
 
         set({
           stats: newStats,
@@ -293,12 +292,19 @@ export const useGameStore = create<GameStore>()(
           unlockedAchievements: [...state.unlockedAchievements, ...newAchievements],
         });
 
-        const currentPlayer = get().players[state.currentPlayerIndex];
-        if (currentPlayer.position >= BOARD_SIZE) {
-          get().finishGame();
-        } else {
-          get().nextTurn();
-        }
+        const cp = get().players[state.currentPlayerIndex];
+        if (cp.position >= BOARD_SIZE) get().finishGame();
+        else get().nextTurn();
+      },
+
+      dismissPunishment: () => {
+        soundEngine.heart();
+        set({ showPunishment: false, currentPunishment: null });
+
+        const state = get();
+        const cp = state.players[state.currentPlayerIndex];
+        if (cp.position >= BOARD_SIZE) get().finishGame();
+        else get().nextTurn();
       },
 
       nextTurn: () => {
@@ -319,15 +325,11 @@ export const useGameStore = create<GameStore>()(
         const state = get();
         const report = generateCoupleReport(state.stats);
         const achievements = checkAchievements(state.stats, state.unlockedAchievements);
-
         soundEngine.victory();
 
         set({
           phase: "result",
-          report: {
-            ...report,
-            achievements: [...state.unlockedAchievements, ...achievements],
-          },
+          report: { ...report, achievements: [...state.unlockedAchievements, ...achievements] },
           unlockedAchievements: [...state.unlockedAchievements, ...achievements],
           showVictory: true,
         });
@@ -342,35 +344,17 @@ export const useGameStore = create<GameStore>()(
         set({
           phase: "menu",
           players: [
-            {
-              id: "",
-              name: "Player 1",
-              gender: "male",
-              characterId: "",
-              position: 0,
-              isCurrentTurn: true,
-            },
-            {
-              id: "",
-              name: "Player 2",
-              gender: "female",
-              characterId: "",
-              position: 0,
-              isCurrentTurn: false,
-            },
+            { id: "", name: "Player 1", gender: "male", characterId: "", position: 0, isCurrentTurn: true },
+            { id: "", name: "Player 2", gender: "female", characterId: "", position: 0, isCurrentTurn: false },
           ],
           currentPlayerIndex: 0,
-          diceValue: null,
-          isRolling: false,
-          showQuestion: false,
-          currentQuestion: null,
-          currentTile: null,
-          stats: { ...initialStats },
-          report: null,
+          diceValue: null, isRolling: false, showQuestion: false,
+          currentQuestion: null, currentTile: null,
+          stats: { ...initialStats }, report: null,
           unlockedAchievements: [],
           soundEnabled: get().soundEnabled,
-          boardAnimation: false,
-          showVictory: false,
+          boardAnimation: false, showVictory: false,
+          showPunishment: false, currentPunishment: null,
         });
       },
     }),
