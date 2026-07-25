@@ -34,13 +34,11 @@ export default function BoardCharacter({
       animate={
         isMoving
           ? { y: [0, -6, 0], scale: [1, 1.08, 1] }
-          : isActive
-          ? { y: [0, -2, 0] }
-          : { y: 0 }
+          : { y: 0, scale: 1 }
       }
       transition={{
-        duration: isMoving ? 0.4 : 1.5,
-        repeat: Infinity,
+        duration: isMoving ? 0.4 : 0.3,
+        repeat: isMoving ? Infinity : 0,
         ease: "easeInOut",
       }}
     >

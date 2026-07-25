@@ -53,8 +53,9 @@ export type SnakeOrLadder = {
 
 export type Punishment = {
   id: number;
-  text: string;
-  type: "funny" | "romantic" | "embarrassing" | "sweet";
+  male: string;
+  female: string;
+  type: "funny" | "romantic" | "embarrassing" | "sweet" | "challenge";
 };
 
 export type CharacterStyle = {
@@ -149,4 +150,5 @@ export type GameState = {
   movementIndex: number;
   isSliding: boolean;
   slideTarget: number | null;
+  askedQuestionIds: number[];
 };

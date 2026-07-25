@@ -158,6 +158,7 @@ export const useGameStore = create<GameStore>()(
       movementIndex: 0,
       isSliding: false,
       slideTarget: null,
+      askedQuestionIds: [],
 
       setPhase: (phase) => set({ phase }),
 
@@ -186,9 +187,14 @@ export const useGameStore = create<GameStore>()(
           const startPos = player.position;
 
           const path: number[] = [];
+          let pos = startPos;
+          let dir = 1;
           for (let i = 1; i <= value; i++) {
-            const pos = startPos + i;
-            if (pos > BOARD_SIZE) break;
+            pos += dir;
+            if (pos > BOARD_SIZE) {
+              pos = BOARD_SIZE - 1;
+              dir = -1;
+            }
             path.push(pos);
           }
 
@@ -256,14 +262,14 @@ export const useGameStore = create<GameStore>()(
 
               set({ boardAnimation: false });
 
-              if (finalPos >= BOARD_SIZE) {
+              if (finalPos === BOARD_SIZE) {
                 get().finishGame();
                 return;
               }
 
               const cp = current.players[playerIndex];
               const category = getQuestionCategory(tileType) as QuestionCategory;
-              const question = getRandomQuestion(category, cp.gender);
+              const question = getRandomQuestion(category, cp.gender, current.askedQuestionIds);
               soundEngine.question();
               set({
                 showQuestion: true,
@@ -329,7 +335,8 @@ export const useGameStore = create<GameStore>()(
             boardAnimation: false,
           });
 
-          const punishment = getRandomPunishment();
+          const punPlayer = current.players[playerIndex];
+          const punishment = getRandomPunishment(punPlayer.gender);
           set({ showPunishment: true, currentPunishment: punishment });
         }, TIMING.SLIDE_DURATION);
       },
@@ -363,10 +370,11 @@ export const useGameStore = create<GameStore>()(
           currentQuestion: null,
           currentTile: null,
           unlockedAchievements: [...state.unlockedAchievements, ...newAchievements],
+          askedQuestionIds: [...state.askedQuestionIds, question.id],
         });
 
         const cp = get().players[state.currentPlayerIndex];
-        if (cp.position >= BOARD_SIZE) get().finishGame();
+        if (cp.position === BOARD_SIZE) get().finishGame();
         else get().nextTurn();
       },
 
@@ -376,7 +384,7 @@ export const useGameStore = create<GameStore>()(
 
         const state = get();
         const cp = state.players[state.currentPlayerIndex];
-        if (cp.position >= BOARD_SIZE) get().finishGame();
+        if (cp.position === BOARD_SIZE) get().finishGame();
         else get().nextTurn();
       },
 
@@ -430,6 +438,7 @@ export const useGameStore = create<GameStore>()(
           showPunishment: false, currentPunishment: null,
           isMoving: false, movementPath: [], movementIndex: 0,
           isSliding: false, slideTarget: null,
+          askedQuestionIds: [],
         });
       },
     }),

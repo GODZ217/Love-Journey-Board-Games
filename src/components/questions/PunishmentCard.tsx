@@ -12,12 +12,14 @@ export default function PunishmentCard({ punishment }: { punishment: Punishment 
 
   const player = players[currentPlayerIndex];
   const opponent = players[currentPlayerIndex === 0 ? 1 : 0];
+  const punText = punishment[player.gender as "male" | "female"];
 
-  const typeConfig = {
+  const typeConfig: Record<string, { icon: string; color: string }> = {
     funny: { icon: "😂", color: "from-yellow-600 to-amber-600" },
     romantic: { icon: "💕", color: "from-pink-600 to-rose-600" },
     embarrassing: { icon: "😳", color: "from-orange-600 to-red-600" },
     sweet: { icon: "🥰", color: "from-fuchsia-600 to-pink-600" },
+    challenge: { icon: "💪", color: "from-blue-600 to-cyan-600" },
   };
 
   const cfg = typeConfig[punishment.type] || typeConfig.funny;
@@ -67,7 +69,7 @@ export default function PunishmentCard({ punishment }: { punishment: Punishment 
               <div className="flex items-start gap-3">
                 <span className="text-2xl">{cfg.icon}</span>
                 <p className="text-white text-base font-medium leading-relaxed">
-                  {punishment.text}
+                  {punText}
                 </p>
               </div>
             </motion.div>

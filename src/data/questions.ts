@@ -3294,7 +3294,10 @@ export const questions: Question[] = [
   },
 ];
 
-export const getRandomQuestion = (category: QuestionCategory, gender: "male" | "female"): Question => {
-  const filtered = questions.filter(q => q.category === category);
+export const getRandomQuestion = (category: QuestionCategory, gender: "male" | "female", excludeIds: number[] = []): Question => {
+  let filtered = questions.filter(q => q.category === category && !excludeIds.includes(q.id));
+  if (filtered.length === 0) {
+    filtered = questions.filter(q => q.category === category);
+  }
   return filtered[Math.floor(Math.random() * filtered.length)];
 };
